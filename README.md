@@ -10,10 +10,14 @@ __:
 __:
 __:
 
-* _data_: The features, models and list of genes required to perform the analyses described in the paper. 
-_model.self.rf.RData_: the final five random forest-based self-training models;
+* _data_: The features, models and list of genes required to perform the analyses described in the paper.
+  
+**_model.self.rf.RData_: the final five random forest-based self-training models;
+
 _loc.feature0.name_: the list of the names of all features in each model;
+
 _loc.feature.name_: the list of the names of selected features in each model;
+
 _gene781_: a curated list of 781 genes related to cancer and the homologous recombination pathway.
 
 * _figure_: figures.
