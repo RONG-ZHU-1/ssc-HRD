@@ -17,6 +17,7 @@ library(randomForest)
 
 
 # input #### 
+#-- combined log-scale transformed data and list of selected features
 load("data/matlog1.all.RData")
 load("data/loc.feature.name.RData")
 n.model=5
@@ -28,7 +29,7 @@ pred.loo=prob.loo=matrix(,dim(matlog1.all)[1],n.model)
 
 No.cpu=80
 
-# parallel processing  
+#-- parallel processing for LOOCV 
 cl <- makeCluster(No.cpu) 
 registerDoParallel(cl)
 

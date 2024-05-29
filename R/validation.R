@@ -9,7 +9,7 @@
 ################################################################
 
 rm(list=ls()) 
-setwd('...') 
+setwd('...') #setwd('H:/Cambridge research/R/HRD_SSL_github')
 set.seed(1) #
 
 # library ####
@@ -38,7 +38,7 @@ library(corrplot)#corrplot
 
 
 # SEC1. para,function  #### 
-source('paramater_function.R')
+source('parameter_function.R')
 
 # SEC2. data ####  
 #--feature
@@ -725,9 +725,10 @@ tmp=ggarrange(gg.muttype.3cohort.v2[[1]]+xlab(''),#+ylab('Predicted probabilitie
               gg.muttype.3cohort.v2[[4]]+xlab(''),#+ylab('Predicted probabilities'),
               gg.muttype.3cohort.v2[[5]]+xlab(''),#+ylab('Predicted probabilities'), 
               gg.HR.CT_ER.METABRIC.RFS.prob,
-              labels =c(fisher.sig.gene,'  c)'),ncol=3,nrow =2)
+              labels =c(fisher.sig.gene,'  c)'),ncol=3,nrow =2,
+              font.label = list(face = "bold.italic"))
 #fig9
-pdf('fig9_muttype_3cohort_combine_add.pdf', width = 15, height =10) 
+pdf('fig9_muttype_3cohort_combine_add_v1.pdf', width = 15, height =10) 
 plot_grid(NULL,
           plot_grid(NULL,heatmap.v4,NULL,tmp,NULL, 
                     nrow=5,labels = c('a)',NA,'b)',NA,NA), 
@@ -884,6 +885,10 @@ pdf('fig7_TransNEO_box_RCB_sd0.2_OR.pdf', width =13, height =4) #
 ggarrange(gg.TransNEO.box.RCB,gg.TransNEO.OR.pCR.5prob, 
           nrow =1,ncol=2,widths =c(3.7,1),labels = c('a)','b)')) 
 dev.off()
+
+
+
+# SCAN-B ####
 
 
 
