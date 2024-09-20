@@ -34,36 +34,23 @@ _gene781_: a curated list of 781 genes related to cancer and the homologous reco
 * _validation_SCANB.R_: is an example of using SCAN-B data to illustrate how to use our model for prediction.
 
 
-``` #--load R packages, parameters, features' names and our five models.
+```
+#--load R packages, parameters, features' names and our five models.
 
 set.seed(1) 
-
 library(ssc) 
-
 library(randomForest) 
-
 source('R/parameter_function.R')  
-
 load('data/loc.feature.name.RData') 
-
 load('data/model.self.rf.RData') 
 
-
-#--load  and SCANB dataset, i.e. Data.SCANB includes the features of 231 samples, 
-
-#where the first column is the sample name, 
-
-#the second column is the HRD label, factor values with levels = c(1,0), 
-
-#and the 3:53 columns are the considered 51 features.
+#--load  and SCANB dataset, i.e. Data.SCANB includes the features of 231 samples, where the first column is the sample name, the second column is the HRD label with factor levels = c(1,0), and the 3:53 columns are the considered 51 features.
 
 load('data.SCANB.Rdata') #231 53
-
 
 #--data conversion by scale(log(x+1)): 
 
 matlog.SCANB=data.SCANB
-
 matlog.SCANB[,c(3:53)]=scale(log(data.SCANB[,c(3:53)]+1))
 
 
@@ -77,9 +64,7 @@ model4=data.frame(matlog.SCANB[,match(c('id','is.hrd',loc.feature.name$model4),c
 model5=data.frame(matlog.SCANB[,match(c('id','is.hrd',loc.feature.name$model5),colnames(matlog.SCANB))])
                      )
 
-#--sequentially input the 5 models, and obtain the prediction probabilities and classifications for each model,
-
-#where Prob.SCANB [m] is the prediction probability of the m-th model.
+#--sequentially input the 5 models, and obtain the prediction probabilities and classifications for each model, where Prob.SCANB [m] is the prediction probability of the m-th model.
 
 pred.SCANB=prob.SCANB=list() 
 
@@ -90,7 +75,3 @@ for(m in 1:5){
   pred.SCANB[[m]]=ifelse(prob.SCANB[[m]]>=mat.cut.f1$cut[m],1,0) 
 
 }
-
-
-
-
