@@ -28,7 +28,8 @@ _loc.feature.name_: the list of the names of selected features in each model;
 _gene781_: a curated list of 781 genes related to cancer and the homologous recombination pathway.
 
 
-* _validation_SCANB.R_: is an example of using SCAN-B data to illustrate how to use our model for prediction.
-
 * _output_: The predicted HRD probabilities in five models for all cohorts.
+
+
+* _validation_SCANB.R_: is an example of using SCAN-B data to illustrate how to use our model for prediction.
 
