@@ -34,7 +34,7 @@ _gene781_: a curated list of 781 genes related to cancer and the homologous reco
 * _validation_SCANB.R_: is an example of using SCAN-B data to illustrate how to use our model for prediction.
 
 
-#--load R packages, parameters, features' names and our five models.
+``` #--load R packages, parameters, features' names and our five models.
 
 set.seed(1) 
 
