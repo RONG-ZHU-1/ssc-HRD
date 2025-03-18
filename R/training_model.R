@@ -34,24 +34,12 @@ library(ROCR) #Visualizing the Performance of Scoring Classifiers;performance(),
 # SEC1. parameter,function ####
 source('parameter_function.R')
 
-# SEC2. data ####  
-load('data/mat.METABRIC.RData') #2009 86 
+# SEC2. data ####   
 load('data/mat.TCGA.RData')  #1003 85
 load('data/mat.ICGC.RData')    #401 90 
 
 ## location #### 
-#--
-loc.METABRIC=list(hrd=match('is.hrd',colnames(mat.METABRIC)),
-                  SBS.v3.3.brca=match('SBS1.brca',colnames(mat.METABRIC)):match('SBS30.brca',colnames(mat.METABRIC)),
-                  ID.v3.3=match('ID1',colnames(mat.METABRIC)):match('ID18',colnames(mat.METABRIC)),
-                  cna.6score=match(c('cnaBurden','cnaLoad',"MACN",'TDP','TDP_size','Chromoth_state'),colnames(mat.METABRIC)),
-                  CX.brca=c(match('CX1.brca',colnames(mat.METABRIC)):match('CX9.brca',colnames(mat.METABRIC))),
-                  CN.brca=match('CN1.brca',colnames(mat.METABRIC)):match('CN17.brca',colnames(mat.METABRIC)),
-                  scar=match(c('scar.loh','scar.lst','scar.tai','scar.sum'),colnames(mat.METABRIC)),
-                  color1=match('color1',colnames(mat.METABRIC)),
-                  cohort=match('cohort',colnames(mat.METABRIC)) 
-) 
-#--
+#-- 
 loc.TCGA=list(hrd=match('is.hrd',colnames(mat.TCGA)),
               SBS.v3.3.brca=match('SBS1.brca',colnames(mat.TCGA)):match('SBS30.brca',colnames(mat.TCGA)),
               ID.v3.3=match('ID1',colnames(mat.TCGA)):match('ID18',colnames(mat.TCGA)),
@@ -75,16 +63,7 @@ loc.ICGC=list(hrd=match('is.hrd',colnames(mat.ICGC)),
 )
 
 
-## matlog.x=scale(log(x+1)) ####  
-matlog.METABRIC=mat.METABRIC 
-for(i in unique(as.numeric(unlist(loc.METABRIC[c(2:7)])))){ 
-  if(sum(na.omit(matlog.METABRIC[,i]))==0|sum(na.omit(matlog.METABRIC[,i])<0)>0){
-    matlog.METABRIC[,i]=NA  #all=0 or some<0
-  }else{
-    matlog.METABRIC[,i]=scale(log(mat.METABRIC[,i]+1))
-  }
-} 
-#
+## matlog.x=scale(log(x+1)) ####   
 matlog.TCGA=mat.TCGA 
 for(i in unique(as.numeric(unlist(loc.TCGA[c(2:7)])))){ 
   if(sum(na.omit(matlog.TCGA[,i]))==0|sum(na.omit(matlog.TCGA[,i])<0)>0){
@@ -104,9 +83,6 @@ for(i in unique(as.numeric(unlist(loc.ICGC[c(2:7)])))){
 } 
 
 ### matlog1.TCGA, n*55, matlog1.all=MTI #### 
-matlog1.METABRIC=matlog.METABRIC[,c(1,loc.METABRIC$hrd,loc.METABRIC$SBS.v3.3.brca,loc.METABRIC$ID.v3.3,
-                                    loc.METABRIC$cna.6score,loc.METABRIC$CX.brca,
-                                    loc.METABRIC$CN.brca,loc.METABRIC$scar[4],loc.METABRIC$color1,loc.METABRIC$cohort)]
 matlog1.TCGA=matlog.TCGA[,c(1,loc.TCGA$hrd,loc.TCGA$SBS.v3.3.brca,loc.TCGA$ID.v3.3,
                             loc.TCGA$cna.6score,loc.TCGA$CX.brca,
                             loc.TCGA$CN.brca,loc.TCGA$scar[4],loc.TCGA$color1,loc.TCGA$cohort)]
@@ -115,11 +91,10 @@ matlog1.ICGC=matlog.ICGC[,c(1,loc.ICGC$hrd,loc.ICGC$SBS.v3.3.brca,loc.ICGC$ID.v3
                             loc.ICGC$CN.brca,loc.ICGC$scar[4],loc.ICGC$color1,loc.ICGC$cohort)]
  
 #--combine
-matlog1.all=rbind(matlog1.METABRIC,
-                  matlog1.TCGA,
+matlog1.all=rbind(matlog1.TCGA,
                   matlog1.ICGC)
-dim(matlog1.all)#3413   55
-#save(matlog1.all,file='data/matlog1.all.RData')#3413   55
+dim(matlog1.all)
+#save(matlog1.all,file='data/matlog1.all.RData')
 
  
 ## location of all 51 features;loc.feature0,12,9,30=51 #### 
@@ -202,7 +177,7 @@ gg.box.feature.snv=ggplot(df.box.feature.snv,aes(x=HRD,y=value,fill=HRD))+
   guides(fill="none") 
 
 #--Supplementary Figure 1
-pdf('figs1_box_feature_3block.pdf', width = 10, height = 11) 
+pdf('fig_box_feature_3block.pdf', width = 10, height = 11) 
 ggarrange(NULL,NULL,gg.box.feature.cn1,
           NULL,gg.box.feature.cn2,
           NULL,gg.box.feature.snv, 
@@ -239,21 +214,6 @@ mat.cor.cn1=rcorr(as.matrix(mat))
 mat.cor.cn1$loc0.8=which(abs(mat.cor.cn1$r)>=0.8,arr.ind = T)
 mat.cor.cn1$loc0.8=mat.cor.cn1$loc0.8[which(mat.cor.cn1$loc0.8[,1]!=mat.cor.cn1$loc0.8[,2]),] 
 mat.cor.cn1$loc0.8 
-# row col  
-# TDP_size   4   2
-# cnaLoad    2   4
-# CX5.brca  10   4
-# TDP_size   4  10 
-
-#--delete TDP_size
-#colnames(matlog1.all)[loc.feature$cn1][4]
-loc.feature$cn1=loc.feature$cn1[-4]
-loc.feature$all=unlist(loc.feature)#37=9,7,21  
-loc.feature$model1=loc.feature$cn1
-loc.feature$model2=c(loc.feature$cn1,loc.feature$cn2)
-loc.feature$model3=loc.feature$snv
-loc.feature$model4=c(loc.feature$snv,loc.feature$cn1)
-loc.feature$model5=loc.feature$all 
 
 #--cn2
 mat=na.omit(matlog1.all[,loc.feature$cn2])  
@@ -268,8 +228,17 @@ mat=na.omit(matlog1.all[,loc.feature$snv])
 mat.cor.snv=rcorr(as.matrix(mat)) 
 mat.cor.snv$loc0.8=which(abs(mat.cor.snv$r)>=0.8,arr.ind = T)
 mat.cor.snv$loc0.8=mat.cor.snv$loc0.8[which(mat.cor.snv$loc0.8[,1]!=mat.cor.snv$loc0.8[,2]),] 
-mat.cor.snv$loc0.8 #0
+mat.cor.snv$loc0.8 
 
+#--delete TDP_size,SBS2.brca
+loc.feature$cn1=loc.feature$cn1[-4]
+loc.feature$snv=loc.feature$snv[-1]
+loc.feature$all=unlist(loc.feature)#37,30=9,5,16  
+loc.feature$model1=loc.feature$cn1
+loc.feature$model2=c(loc.feature$cn1,loc.feature$cn2)
+loc.feature$model3=loc.feature$snv
+loc.feature$model4=c(loc.feature$snv,loc.feature$cn1)
+loc.feature$model5=loc.feature$all 
 
 #--save
 loc.feature.name=list(colnames(matlog1.all)[loc.feature[[1]]],
@@ -286,12 +255,12 @@ names(loc.feature.name)=names(loc.feature)
 
 
 ### cor plot #### 
-mat.select.cor.all=cor(matlog1.all[,loc.feature$model5]) #37=9,7,21 
+mat.select.cor.all=cor(matlog1.all[,loc.feature$model5])  
 mat.select.pval.all <- cor.mtest(matlog1.all[,loc.feature$model5])
 #
-i1=9;i2=16;i3=37
+i1=9;i2=14;i3=30
 #--Supplementary Figure 6 
-pdf(file = paste0("figs6_cor_select_3block_between12.pdf"), width=5, height =8) 
+pdf(file = paste0("fig_cor_select_3block_between12.pdf"), width=5, height =8) 
 corrplot(mat.select.cor.all[1:i1,(i1+1):i2], method="color",   
          addCoef.col = "black", # Add coefficient of correlation
          tl.col="black", tl.srt=45, #Text label color and rotation
@@ -301,7 +270,7 @@ corrplot(mat.select.cor.all[1:i1,(i1+1):i2], method="color",
 )
 dev.off()
 #
-pdf(file = paste0("figs6_cor_select_3block_between13.pdf"), width=11, height =8)#
+pdf(file = paste0("fig_cor_select_3block_between13.pdf"), width=11, height =8)#
 corrplot(mat.select.cor.all[1:i1,(i2+1):i3], method="color",   
          addCoef.col = "black", # Add coefficient of correlation
          tl.col="black", tl.srt=45, #Text label color and rotation
@@ -311,7 +280,7 @@ corrplot(mat.select.cor.all[1:i1,(i2+1):i3], method="color",
 )
 dev.off()
 #
-pdf(file = paste0("figs6_cor_select_3block_between23.pdf"), width=11, height =5)#
+pdf(file = paste0("fig_cor_select_3block_between23.pdf"), width=11, height =5)#
 corrplot(mat.select.cor.all[(i1+1):i2,(i2+1):i3], method="color", 
          addCoef.col = "black", # Add coefficient of correlation
          tl.col="black", tl.srt=45, #Text label color and rotation
@@ -324,7 +293,7 @@ dev.off()
 
 
 #--
-pdf(file = paste0("figs6_cor_select_cn1.pdf"), width =8, height =8) 
+pdf(file = paste0("fig_cor_select_cn1.pdf"), width =8, height =8) 
 corrplot(mat.select.cor.all[1:i1,1:i1], method="color",  
          type="upper",  
          addCoef.col = "black", # Add coefficient of correlation
@@ -337,7 +306,7 @@ corrplot(mat.select.cor.all[1:i1,1:i1], method="color",
 ) 
 dev.off()
 #
-pdf(file = paste0("figs6_cor_select_cn2.pdf"), width =5, height =5)#
+pdf(file = paste0("fig_cor_select_cn2.pdf"), width =5, height =5)#
 corrplot(mat.select.cor.all[(i1+1):i2,(i1+1):i2], method="color", 
          type="upper",  
          addCoef.col = "black", # Add coefficient of correlation
@@ -349,7 +318,7 @@ corrplot(mat.select.cor.all[(i1+1):i2,(i1+1):i2], method="color",
          col=colorRampPalette(c("blue","white","red"))(100))
 dev.off()
 #
-pdf(file = paste0("figs6_cor_select_snv.pdf"), width =10, height =10)#
+pdf(file = paste0("fig_cor_select_snv.pdf"), width =10, height =10)#
 corrplot(mat.select.cor.all[(i2+1):i3,(i2+1):i3], method="color", 
          type="upper",  
          addCoef.col = "black", # Add coefficient of correlation
@@ -381,13 +350,13 @@ for(i in 1:dim(mat.ICGC.HRDetect.feature)[2]){
 
 #--
 mat.cor.ICGC=cor(cbind(matlog1.ICGC[,loc.feature$model5],
-                       mat.ICGC.HRDetect.feature)) #43=37=9,7,21;+6 
+                       mat.ICGC.HRDetect.feature))  
 mat.cor.ICGC.pval <- cor.mtest(cbind(matlog1.ICGC[,loc.feature$model5],
                                      mat.ICGC.HRDetect.feature))
 #
-i1=9;i2=16;i3=37;i4=43
+i1=9;i2=14;i3=30;i4=36
 #
-pdf(file = paste0("fig5_cor_ICGC_HRDetect_v1.pdf"), width=12, height =8)#
+pdf(file = paste0("fig_cor_ICGC_HRDetect_v1.pdf"), width=12, height =8)#
 par(mfrow=c(2,1)) 
 corrplot(mat.cor.ICGC[(i3+1):i4,1:i2], method="color",  
          addCoef.col = "black", # Add coefficient of correlation
@@ -411,13 +380,6 @@ dev.off()
 
 
 ## mat.v1.clinical ####
-#--
-mat.v1.clinical.METABRIC=mat.METABRIC[,match(c('id','is.hrd',name.clinical,'cohort'),colnames(mat.METABRIC))]
-mat.v1.clinical.METABRIC$is.hrd=as.character(mat.v1.clinical.METABRIC$is.hrd)
-mat.v1.clinical.METABRIC$is.hrd[is.na(mat.v1.clinical.METABRIC$is.hrd)]='NA'
-mat.v1.clinical.METABRIC$is.hrd=factor(mat.v1.clinical.METABRIC$is.hrd,
-                                       levels =c('1','0','NA'),
-                                       labels =c('HRD+','HRD-','HRD unknown')) 
 #--
 mat.v1.clinical.TCGA=mat.TCGA[,match(c('id','is.hrd',name.clinical,'cohort'),colnames(mat.TCGA))]
 mat.v1.clinical.TCGA$is.hrd=as.character(mat.v1.clinical.TCGA$is.hrd)
@@ -452,33 +414,8 @@ mat.type.v1=data.frame(type=c(rep(name.clinical,name.type.v1.n),
                        label=c(name.type.v1.label,name.type.v1.label,name.type.v1.label),#80
                        HRD=c(rep('HRD+',length(name.type.v1.label)),
                              rep('HRD-',length(name.type.v1.label)),
-                             rep('HRD unknown',length(name.type.v1.label))))#64 4
-#add prob;
-mat.type.v1$METABRIC=c(prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',3])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',4])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',5])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',6])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',7])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',8])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',9])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD+',10])), #HRD+ 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',3])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',4])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',5])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',6])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',7])),
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',8])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',9])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD-',10])), #HRD-
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',3])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',4])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',5])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',6])),
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',7])),
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',8])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',9])), 
-                       prop.table(table(mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd=='HRD unknown',10])) #HRD unknown
-) 
+                             rep('HRD unknown',length(name.type.v1.label)))) 
+#add prob; 
 mat.type.v1$TCGA=c(prop.table(table(mat.v1.clinical.TCGA[mat.v1.clinical.TCGA$is.hrd=='HRD+',3])), 
                    prop.table(table(mat.v1.clinical.TCGA[mat.v1.clinical.TCGA$is.hrd=='HRD+',4])), 
                    prop.table(table(mat.v1.clinical.TCGA[mat.v1.clinical.TCGA$is.hrd=='HRD+',5])), 
@@ -544,42 +481,10 @@ mat.type.v1$color=rep(c("#9ac9db",'#ff8884',
                         colipam,
                         coliClust),3)
 #
-dim(mat.type.v1)#84 7 
+dim(mat.type.v1)
 
 
 baseSize=13
-#--METABRIC 
-HRD.labs=paste0(c('HRD+ (N=','HRD- (N=','HRD unknown (N='),
-                as.numeric(table(mat.v1.clinical.METABRIC$is.hrd)),')')
-names(HRD.labs)=c('HRD+','HRD-','HRD unknown')
-#
-gg.sub.v1.METABRIC=ggplot(mat.type.v1[!is.na(mat.type.v1$METABRIC),],aes(y=METABRIC,x=type))+
-  geom_bar(stat="identity",  #position="stack",
-           position = position_stack(reverse = TRUE),
-           aes(fill=label),color="gray30",size=0.2) +  
-  scale_fill_manual(values=mat.type.v1[!is.na(mat.type.v1$METABRIC),'color'])+ 
-  geom_text(aes(label = label), fontface="bold",color="black",size = 3, 
-            position = position_stack(vjust =0.5,reverse =T)
-  ) +
-  facet_grid(~HRD,labeller = labeller(HRD=HRD.labs)) +  
-  labs(y="Proportion of cases")+
-  scale_x_discrete(expand = c(0, 0), breaks=name.clinical,
-                   labels=name.clinical)+ 
-  theme_grey(base_size = baseSize) + 
-  theme(
-    axis.text=element_text(size = baseSize*0.7, face="bold",colour = "black"),
-    axis.title=element_blank(),
-    axis.ticks=element_blank(),
-    legend.position = "none",
-    strip.background = element_blank(),
-    panel.background = element_blank(),
-    strip.text.x = element_text(size = baseSize*0.8, face="bold"),
-    strip.text.y = element_blank(),
-    panel.spacing.x = unit(0.00001, "lines"),
-    panel.spacing.y = unit(0.8, "lines"))+
-  coord_flip() 
-
-
 #--TCGA 
 HRD.labs=paste0(c('HRD+ (N=','HRD- (N=','HRD unknown (N='),
                 as.numeric(table(mat.v1.clinical.TCGA$is.hrd)),')')
@@ -642,17 +547,14 @@ gg.sub.v1.ICGC=ggplot(mat.type.v1[!is.na(mat.type.v1$ICGC),],aes(y=ICGC,x=type))
 gg.sub.v1.ICGC
 
 #--
-pdf(file = "fig1_clinical_3cohort.pdf", width =10, height =12)
-ggarrange(gg.sub.v1.METABRIC,gg.sub.v1.TCGA,gg.sub.v1.ICGC, 
-          labels=c('METABRIC','TCGA','ICGC'),ncol=1,nrow=3) 
+pdf(file = "fig_clinical.pdf")
+ggarrange(gg.sub.v1.TCGA,gg.sub.v1.ICGC, 
+          labels=c('TCGA','ICGC'),ncol=1,nrow=2) 
 dev.off()
 
 
 
 ### chisq.test ####  
-mat.v2.clinical.METABRIC=mat.v1.clinical.METABRIC[mat.v1.clinical.METABRIC$is.hrd%in%c('HRD+','HRD-'),]
-mat.v2.clinical.METABRIC$is.hrd=factor(mat.v2.clinical.METABRIC$is.hrd,levels =c('HRD+','HRD-'))
-#
 mat.v2.clinical.TCGA=mat.v1.clinical.TCGA[mat.v1.clinical.TCGA$is.hrd%in%c('HRD+','HRD-'),]
 mat.v2.clinical.TCGA$is.hrd=factor(mat.v2.clinical.TCGA$is.hrd,levels =c('HRD+','HRD-'))
 #
@@ -661,15 +563,6 @@ mat.v2.clinical.ICGC$is.hrd=factor(mat.v2.clinical.ICGC$is.hrd,levels =c('HRD+',
 
 #--
 mat.v2.clinical.test=data.frame(type=name.clinical)
-mat.v2.clinical.test$METABRIC=round(c(chisq.test(table(mat.v2.clinical.METABRIC[c(3,2)]))$p.value, 
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(4,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(5,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(6,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(7,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(8,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(9,2)]))$p.value,
-                                      chisq.test(table(mat.v2.clinical.METABRIC[,c(10,2)]))$p.value),3)
-
 mat.v2.clinical.test$TCGA=round(c(chisq.test(table(mat.v2.clinical.TCGA[,c(3,2)]))$p.value,
                                   chisq.test(table(mat.v2.clinical.TCGA[,c(4,2)]))$p.value,
                                   chisq.test(table(mat.v2.clinical.TCGA[,c(5,2)]))$p.value,
@@ -695,17 +588,17 @@ mat.v2.clinical.test$ICGC=round(c(chisq.test(table(mat.v2.clinical.ICGC[,c(3,2)]
 ## load('LOOCV.RData') ####
 load('output/LOOCV.RData')
 #
-loo.pred=t(array(unlist(lapply(LOO,"[[",1)),dim=c(5,3413))) 
+loo.pred=t(array(unlist(lapply(LOO,"[[",1)),dim=c(5,1404))) 
 loo.pred=data.frame(loo.pred)
 colnames(loo.pred)=name.model 
 loo.pred=2-loo.pred
 #
-loo.prob=t(array(unlist(lapply(LOO,"[[",2)),dim=c(5,3413)))
+loo.prob=t(array(unlist(lapply(LOO,"[[",2)),dim=c(5,1404)))
 loo.prob=data.frame(loo.prob)
 colnames(loo.prob)=name.model 
 
 
-## select f1 cut(0.4280000 0.3260000 0.3480000 0.3100000 0.3360000) ####
+## select f1 cut ####
 perfm.loo=list()  
 for(m in 1:n.model){
   print(m)
@@ -723,28 +616,12 @@ Result.loo=data.frame(Result.loo)
 Result.loo$index=name.perf.v1  
 dim(Result.loo)  
 colnames(Result.loo)[1:n.model]=name.model
-Result.loo 
-#          CNA      ASCN       SNV   SNV+CNA  SNV+ASCN         index  
-# 1 0.8585035 0.8927021 0.8090887 0.9037546 0.9101341            AUC
-# 2 0.5062059 0.5797978 0.5605512 0.6377526 0.6583698          AUCPR
-# 3 0.5121951 0.6536585 0.4829268 0.6146341 0.6682927 Sensitivity.f1
-# 4 0.9719790 0.9597198 0.9746060 0.9632224 0.9662872 Specificity.f1
-# 5 0.6213018 0.5929204 0.6305732 0.6000000 0.6401869   Precision.f1
-# 6 0.5291017 0.5868903 0.5174080 0.5715618 0.6223199         MCC.f1
-# 7 0.4280000 0.3260000 0.3480000 0.3100000 0.3360000   threshold.f1
-# 
 
 
 #--optimal threshold
 mat.cut.f1=data.frame(variable=name.model,cut=as.numeric(Result.loo[7,1:5]))
 mat.cut.f1$variable=factor(mat.cut.f1$variable,levels=name.model)
 mat.cut.f1
-#   variable   cut
-# 1      CNA 0.428
-# 2     ASCN 0.326
-# 3      SNV 0.348
-# 4  SNV+CNA 0.310
-# 5 SNV+ASCN 0.336
 
 
 ## roc/pr #### 
@@ -757,16 +634,6 @@ loo.roc=loo.pr=list()
     }
 names(loo.roc)=name.model#paste0('model',1:n.model) 
 names(loo.pr)=name.model#paste0('model',1:n.model) 
-#
-loo.roc.METABRIC=loo.pr.METABRIC=list() 
-for(m in 1:n.model){ 
-  loo.roc.METABRIC[[m]]=roc.curve(loo.prob[which(matlog1.all$is.hrd==1&matlog1.all$cohort=='METABRIC'),m],
-                                  loo.prob[which(matlog1.all$is.hrd==0&matlog1.all$cohort=='METABRIC'),m], curve = TRUE,rand.compute=T)
-  loo.pr.METABRIC[[m]]=pr.curve(loo.prob[which(matlog1.all$is.hrd==1&matlog1.all$cohort=='METABRIC'),m],
-                                loo.prob[which(matlog1.all$is.hrd==0&matlog1.all$cohort=='METABRIC'),m], curve = TRUE,rand.compute=T)
-}
-names(loo.roc.METABRIC)=name.model#paste0('model',1:n.model) 
-names(loo.pr.METABRIC)=name.model#paste0('model',1:n.model) 
 #
 loo.roc.TCGA=loo.pr.TCGA=list() 
 for(m in 1:n.model){ 
@@ -790,19 +657,17 @@ names(loo.pr.ICGC)=name.model#paste0('model',1:n.model)
 
  
 #--
-pdf(file = paste0("fig3_loo_4case_roc.pdf"), width =8, height=7)
-par(mfrow=c(2,2))
-plot.roc.5(loo.roc,pos="bottomright",cohort='Combined') 
-plot.roc.5(loo.roc.METABRIC,pos="bottomright",cohort='METABRIC')
+pdf(file = paste0("fig_loo_roc.pdf"))
+par(mfrow=c(1,3))
+plot.roc.5(loo.roc,pos="bottomright",cohort='Combined')  
 plot.roc.5(loo.roc.TCGA,pos="bottomright",cohort='TCGA')
 plot.roc.5(loo.roc.ICGC,pos="bottomright",cohort='ICGC') 
 dev.off()
 
 #--
-pdf(file = paste0("figs2_loo_4case_pr.pdf"), width =10, height=8)
-par(mfrow=c(2,2))
-plot.pr.5(loo.pr,pos="bottomleft",cohort='Combined') 
-plot.pr.5(loo.pr.METABRIC,pos="topright",cohort='METABRIC') 
+pdf(file = paste0("fig_loo_pr.pdf"))
+par(mfrow=c(1,3))
+plot.pr.5(loo.pr,pos="bottomleft",cohort='Combined')  
 plot.pr.5(loo.pr.TCGA,pos="bottomleft",cohort='TCGA') 
 plot.pr.5(loo.pr.ICGC,pos="bottomleft",cohort='ICGC') 
 dev.off()
@@ -817,13 +682,6 @@ mat.prob.loo=mat.prob.loo[!is.na(mat.prob.loo$is.hrd),]
 mat.prob.loo$is.hrd=factor(mat.prob.loo$is.hrd,levels = c(1,0),labels= c('HRD+','HRD-'))
 mat.prob.loo=melt(mat.prob.loo) 
 colnames(mat.prob.loo)[c(1,3)]=c('HRD','prob')  
-#
-mat.prob.loo.METABRIC=loo.prob[which(matlog1.all$cohort=='METABRIC'),]
-mat.prob.loo.METABRIC$is.hrd=matlog1.METABRIC$is.hrd
-mat.prob.loo.METABRIC=mat.prob.loo.METABRIC[!is.na(mat.prob.loo.METABRIC$is.hrd),]
-mat.prob.loo.METABRIC$is.hrd=factor(mat.prob.loo.METABRIC$is.hrd,levels = c(1,0),labels= c('HRD+','HRD-'))
-mat.prob.loo.METABRIC=melt(mat.prob.loo.METABRIC) 
-colnames(mat.prob.loo.METABRIC)[c(1,3)]=c('HRD','prob') 
 #
 mat.prob.loo.TCGA=loo.prob[which(matlog1.all$cohort=='TCGA'),]
 mat.prob.loo.TCGA$is.hrd=matlog1.TCGA$is.hrd
@@ -847,13 +705,6 @@ gg.box.loo=ggplot(mat.prob.loo, aes(x=HRD, y=prob, fill=HRD)) +
   facet_wrap(~variable,ncol=5)+ 
   geom_hline(data = mat.cut.f1, aes(yintercept = cut), linetype="dashed", color = "grey")
 #
-gg.box.loo.METABRIC=ggplot(mat.prob.loo.METABRIC, aes(x=HRD, y=prob, fill=HRD)) +  
-  geom_boxplot()+stat_compare_means(method = "wilcox.test",label = "p.signif",color="blue",
-                                    label.y.npc = 0.9)+  
-  xlab('')+ylab('')+ 
-  facet_wrap(~variable,ncol=5)+  
-  geom_hline(data = mat.cut.f1, aes(yintercept = cut), linetype="dashed", color = "grey")
-#
 gg.box.loo.TCGA=ggplot(mat.prob.loo.TCGA, aes(x=HRD, y=prob, fill=HRD)) +  
   geom_boxplot()+stat_compare_means(method = "wilcox.test",label = "p.signif",color="blue",
                                     label.y.npc = 0.9)+   
@@ -869,13 +720,12 @@ gg.box.loo.ICGC=ggplot(mat.prob.loo.ICGC, aes(x=HRD, y=prob, fill=HRD)) +
   geom_hline(data = mat.cut.f1, aes(yintercept = cut), linetype="dashed", color = "grey")
 
 #--
-pdf(file ="figs3_box_loo_4case.pdf",width=8, height=9)
+pdf(file ="fig_box_loo.pdf")
 ggarrange(NULL,NULL,gg.box.loo+theme(legend.position='none'),
-          NULL,gg.box.loo.METABRIC+theme(legend.position='none'),
           NULL,gg.box.loo.TCGA+theme(legend.position='none'),
           NULL,gg.box.loo.ICGC+theme(legend.position='none'),ncol =1,
-          labels=c(NA,'Combined',NA,'METABRIC',NA,"   TCGA",NA,"   ICGC"), 
-          heights = c(0.1,0.12,1,0.12,1,0.12,1,0.12,1)) 
+          labels=c(NA,'Combined',NA,"   TCGA",NA,"   ICGC"), 
+          heights = c(0.1,0.12,1,0.12,1,0.12,1)) 
 dev.off()
 
 
