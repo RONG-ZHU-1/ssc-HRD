@@ -104,10 +104,10 @@ loc.TransNEO=list(hrd=match('is.hrd',colnames(mat.TransNEO)),
 )  
 
 loc.NEWTON=list(SBS.v3.3.brca=match('SBS1.brca',colnames(mat.NEWTON)):match('SBS30.brca',colnames(mat.NEWTON)),
-  ID.v3.3=match('ID1',colnames(mat.NEWTON)):match('ID18',colnames(mat.NEWTON)),
-  cna.6score=match(c('cnaBurden','cnaLoad',"MACN",'TDP','TDP_size','Chromoth_state'),colnames(mat.NEWTON)),
-  CX.brca=c(match('CX1.brca',colnames(mat.NEWTON)):match('CX9.brca',colnames(mat.NEWTON))), 
-  cohort=match('cohort',colnames(mat.NEWTON))
+                ID.v3.3=match('ID1',colnames(mat.NEWTON)):match('ID18',colnames(mat.NEWTON)),
+                cna.6score=match(c('cnaBurden','cnaLoad',"MACN",'TDP','TDP_size','Chromoth_state'),colnames(mat.NEWTON)),
+                CX.brca=c(match('CX1.brca',colnames(mat.NEWTON)):match('CX9.brca',colnames(mat.NEWTON))), 
+                cohort=match('cohort',colnames(mat.NEWTON))
 )  
 
 loc.CCLE=list(hrd=match('is.hrd',colnames(mat.CCLE)),
@@ -204,7 +204,7 @@ matlog1.CCLE=matlog.CCLE[,c(1,loc.CCLE$hrd,loc.CCLE$SBS.v3.3.brca,loc.CCLE$ID.v3
                             loc.CCLE$cna.6score,loc.CCLE$CX.brca,
                             loc.CCLE$CN.brca,loc.CCLE$scar[4],
                             loc.CCLE$color1,loc.CCLE$cohort)]
- 
+
 
 
 # SEC3. METABRIC ####
@@ -245,9 +245,9 @@ mat.METABRIC.add=cbind(mat.METABRIC,prob.METABRIC.mat,pred.METABRIC.mat)
 ## RFS, relapse free survival #### 
 loc.na.RFS=unique(c(which(is.na(mat.METABRIC.add$RFS.time)),which(mat.METABRIC.add$RFS.time<1),which(is.na(mat.METABRIC.add$RFS.event))))#186 1216
 METABRIC.SA=data.frame(id=mat.METABRIC.add$id[-loc.na.RFS],
-                    time=mat.METABRIC.add$RFS.time[-loc.na.RFS],
-                    event=mat.METABRIC.add$RFS.event[-loc.na.RFS],
-                    mat.METABRIC.add[-loc.na.RFS,])
+                       time=mat.METABRIC.add$RFS.time[-loc.na.RFS],
+                       event=mat.METABRIC.add$RFS.event[-loc.na.RFS],
+                       mat.METABRIC.add[-loc.na.RFS,])
 
 
 ### hazard ratio in CT+&ER- ####
@@ -293,7 +293,7 @@ METABRIC.SA.CTERp.result$type1=name.model
 METABRIC.SA.CTERp.result$ER='ER+' 
 
 
-#--fig10
+#--fig
 mat.HR.CTER.METABRIC.RFS=rbind(METABRIC.SA.CTER.result,METABRIC.SA.CTERp.result)
 #
 gg.HR.CT_ER.METABRIC.RFS.prob=ggplot(data=mat.HR.CTER.METABRIC.RFS, 
@@ -316,7 +316,7 @@ gg.HR.CT_ER.METABRIC.RFS.prob=ggplot(data=mat.HR.CTER.METABRIC.RFS,
         axis.text=element_text(size=15),
         axis.title=element_text(size=15)) 
 #--
-pdf('fig9c_SA_HR_METABRIC_CT_ER.pdf', width =7, height =6)#
+pdf('fig_SA_HR_METABRIC_CT_ER.pdf')#
 gg.HR.CT_ER.METABRIC.RFS.prob
 dev.off() 
 
@@ -396,302 +396,143 @@ load('data/gene781.RData')
 
 
 ## fisher.test ####
-#--METABRIC 
-mat.mut.METABRIC=mat.ismut.METABRIC
-mat.mut.METABRIC[,-1]=ifelse(is.na(mat.mut.METABRIC[,-1]),0,1)
-mat.mut.METABRIC=mat.mut.METABRIC[match(mat.METABRIC.add$id.PEREIRA,mat.mut.METABRIC$id),]  
-mat.mut.METABRIC$id[is.na(mat.mut.METABRIC$id)]=mat.METABRIC.add$id.PEREIRA[is.na(mat.mut.METABRIC$id)] 
-
-#--p value 
-loc.pred=grep('pred.',colnames(mat.METABRIC.add))  
-fisher.METABRIC=list()
-fisher.METABRIC.pval=fisher.METABRIC.OR=matrix(,length(gene781),n.model)
-for(g in 1:length(gene781)){ 
-  print(g)
-  fisher.METABRIC[[g]]=list()
-  if(sum(na.omit(mat.mut.METABRIC[,g+1]))==0){ #this gth gene no mut
-    fisher.METABRIC[[g]]=NA
-    fisher.METABRIC.pval[g,]=fisher.METABRIC.OR[g,]=NA
-  }else{
-    for(m in 1:n.model){ 
-      fisher.METABRIC[[g]][[m]]=fisher.test(table(mat.mut.METABRIC[,g+1],mat.METABRIC.add[,loc.pred[m]]))
-      fisher.METABRIC.pval[g,m]=fisher.METABRIC[[g]][[m]]$p.value 
-      fisher.METABRIC.OR[g,m]=fisher.METABRIC[[g]][[m]]$estimate
-    }
-  }
-} 
-#--p value
-fisher.METABRIC.pval=data.frame(fisher.METABRIC.pval)
-rownames(fisher.METABRIC.pval)=gene781
-colnames(fisher.METABRIC.pval)=name.model 
-
-#--keep significant cases
-fisher.METABRIC.pval.sig=fisher.METABRIC.pval
-for(m in 1:n.model){
-  fisher.METABRIC.pval.sig[,m]=ifelse(fisher.METABRIC.pval[,m]<=0.05,1,0)
-}
-fisher.METABRIC.pval.sig.v1=fisher.METABRIC.pval.sig[which(rowSums(fisher.METABRIC.pval.sig)!=0),]
-fisher.METABRIC.pval.sig.v1=data.frame(fisher.METABRIC.pval.sig.v1)
-
-#--p.adjust
-fisher.METABRIC.adj=fisher.METABRIC.pval
-for(m in 1:n.model){ 
-  fisher.METABRIC.adj[,m]=p.adjust(fisher.METABRIC.pval[,m],'hochberg')
-}
-fisher.METABRIC.adj.sig=ifelse(fisher.METABRIC.adj<=0.05,1,0) #1=sig 
-fisher.METABRIC.adj.sig.v1=fisher.METABRIC.adj.sig[which(rowSums(fisher.METABRIC.adj.sig)!=0),]
-fisher.METABRIC.adj.sig.v1=data.frame(fisher.METABRIC.adj.sig.v1) 
-
-#--OR
-fisher.METABRIC.OR=data.frame(fisher.METABRIC.OR)
-rownames(fisher.METABRIC.OR)=gene781
-colnames(fisher.METABRIC.OR)=name.model 
-
-#--OR with  significant cases
-fisher.METABRIC.OR.v1=fisher.METABRIC.OR[rownames(fisher.METABRIC.OR)%in%rownames(fisher.METABRIC.adj.sig.v1),] 
-
-
-
-#-- TCGA  
-mat.mut.TCGA=mat.ismut.TCGA[match(mat.TCGA.add$id,mat.ismut.TCGA$id),]
-sum(mat.mut.TCGA$id==mat.TCGA.add$id) #1003
-mat.mut.TCGA[,-1]=ifelse(is.na(mat.mut.TCGA[,-1]),0,1)
-#
 loc.pred=grep('pred.',colnames(mat.TCGA.add)) 
-fisher.TCGA=list()
-fisher.TCGA.pval=fisher.TCGA.OR=matrix(,length(gene781),n.model)
+mat.mut.TCGA.pred=merge(mat.mut.TCGA,mat.TCGA.add[,c(1,loc.pred)],by='id') 
+mat.mut.TCGA.pred=mat.mut.TCGA.pred[match(mat.TCGA.add$id,mat.mut.TCGA.pred$id),]
+#--ICGC
+loc.pred=grep('pred.',colnames(mat.ICGC.add)) 
+mat.mut.ICGC.pred=merge(mat.mut.ICGC,mat.ICGC.add[,c(1,loc.pred)],by='id') 
+mat.mut.ICGC.pred=mat.mut.ICGC.pred[match(mat.ICGC.add$id,mat.mut.ICGC.pred$id),]
+#--
+mat.mut.2cohort.pred=rbind(mat.mut.TCGA.pred,mat.mut.ICGC.pred)#1404 787
+dim(mat.mut.2cohort.pred)
+
+fisher.2cohort=list()
+fisher.2cohort.pval=fisher.2cohort.OR=matrix(,length(gene781),n.model)
 for(g in 1:length(gene781)){ 
   print(g)
-  fisher.TCGA[[g]]=list()
-  if(sum(mat.mut.TCGA[,g+1])==0){ #this gth gene no mut
-    fisher.TCGA[[g]]=NA
-    fisher.TCGA.pval[g,]=fisher.TCGA.OR[g,]=NA
+  fisher.2cohort[[g]]=list()
+  if(sum(mat.mut.2cohort.pred[,g+1])==0){ #this gth gene no mut
+    fisher.2cohort[[g]]=NA
+    fisher.2cohort.pval[g,]=fisher.2cohort.OR[g,]=NA
   }else{
     for(m in 1:n.model){ 
-      fisher.TCGA[[g]][[m]]=fisher.test(table(mat.mut.TCGA[,g+1],mat.TCGA.add[,loc.pred[m]]))
-      fisher.TCGA.pval[g,m]=fisher.TCGA[[g]][[m]]$p.value 
-      fisher.TCGA.OR[g,m]=fisher.TCGA[[g]][[m]]$estimate
+      fisher.2cohort[[g]][[m]]=fisher.test(table(mat.mut.2cohort.pred[,g+1],
+                                                 mat.mut.2cohort.pred[,782+m]))
+      fisher.2cohort.pval[g,m]=fisher.2cohort[[g]][[m]]$p.value 
+      fisher.2cohort.OR[g,m]=fisher.2cohort[[g]][[m]]$estimate
     }
   }
 } 
 #--p value
-fisher.TCGA.pval=data.frame(fisher.TCGA.pval)
-rownames(fisher.TCGA.pval)=gene781
-colnames(fisher.TCGA.pval)=name.model 
+fisher.2cohort.pval=data.frame(fisher.2cohort.pval)
+rownames(fisher.2cohort.pval)=gene781
+colnames(fisher.2cohort.pval)=name.model 
 
 #--keep significant cases
-fisher.TCGA.pval.sig=fisher.TCGA.pval
+fisher.2cohort.pval.sig=fisher.2cohort.pval
 for(m in 1:n.model){
-  fisher.TCGA.pval.sig[,m]=ifelse(fisher.TCGA.pval[,m]<=0.05,1,0)
+  fisher.2cohort.pval.sig[,m]=ifelse(fisher.2cohort.pval[,m]<=0.05,1,0)
 }
-fisher.TCGA.pval.sig.v1=fisher.TCGA.pval.sig[which(rowSums(fisher.TCGA.pval.sig)!=0),]
-fisher.TCGA.pval.sig.v1=data.frame(fisher.TCGA.pval.sig.v1)
+fisher.2cohort.pval.sig.v1=fisher.2cohort.pval.sig[which(rowSums(fisher.2cohort.pval.sig)!=0),]
+fisher.2cohort.pval.sig.v1=data.frame(fisher.2cohort.pval.sig.v1)
 
 #--p.adjust
-fisher.TCGA.adj=fisher.TCGA.pval
+fisher.2cohort.adj=fisher.2cohort.pval
 for(m in 1:n.model){ 
-  fisher.TCGA.adj[,m]=p.adjust(fisher.TCGA.pval[,m],'hochberg')
+  fisher.2cohort.adj[,m]=p.adjust(fisher.2cohort.pval[,m],'hochberg')
 }
-fisher.TCGA.adj.sig=ifelse(fisher.TCGA.adj<=0.05,1,0) #1=sig 
-fisher.TCGA.adj.sig.v1=fisher.TCGA.adj.sig[which(rowSums(fisher.TCGA.adj.sig)!=0),]
-fisher.TCGA.adj.sig.v1=data.frame(fisher.TCGA.adj.sig.v1) 
+fisher.2cohort.adj.sig=ifelse(fisher.2cohort.adj<=0.05,1,0) #1=sig 
+fisher.2cohort.adj.sig.v1=fisher.2cohort.adj.sig[which(rowSums(fisher.2cohort.adj.sig)!=0),]
+fisher.2cohort.adj.sig.v1=data.frame(fisher.2cohort.adj.sig.v1)  
 
 #--OR
-fisher.TCGA.OR=data.frame(fisher.TCGA.OR)
-rownames(fisher.TCGA.OR)=gene781
-colnames(fisher.TCGA.OR)=name.model 
+fisher.2cohort.OR=data.frame(fisher.2cohort.OR)
+rownames(fisher.2cohort.OR)=gene781
+colnames(fisher.2cohort.OR)=name.model 
 
 #--OR with  significant cases
-fisher.TCGA.OR.v1=fisher.TCGA.OR[rownames(fisher.TCGA.OR)%in%rownames(fisher.TCGA.adj.sig.v1),] 
+fisher.2cohort.OR.v1=fisher.2cohort.OR[rownames(fisher.2cohort.OR)%in%rownames(fisher.2cohort.adj.sig.v1),] 
+
+#--change order with OR
+rank(fisher.2cohort.OR.v1$`SNV+ASCN`)
+fisher.2cohort.OR.v2=fisher.2cohort.OR.v1[order(fisher.2cohort.OR.v1$`SNV+ASCN`,decreasing =T),]
+fisher.2cohort.adj.sig.v2=fisher.2cohort.adj.sig.v1[order(fisher.2cohort.OR.v1$`SNV+ASCN`,decreasing =T),]
+
+#--genes with OR>1 
+fisher.2cohort.sig.gene=rownames(fisher.2cohort.OR.v2)
+fisher.2cohort.sig.gene.OR1=rownames(fisher.2cohort.OR.v2)[1:7]
+#"DPYD"   "BRCA2"  "BRCA1"  "SETDB1" "DCC"    "EPHA3"  "TP53" 
+fisher.2cohort.sig.gene.OR0=rownames(fisher.2cohort.OR.v2)[8:11]
+#"GATA3"   "PIK3CA" "MAP3K1" "CDH1" 
 
 
-#-- ICGC 
-mat.mut.ICGC=mat.ismut.ICGC
-mat.mut.ICGC[,-1]=ifelse(is.na(mat.mut.ICGC[,-1]),0,1)
-mat.mut.ICGC=mat.mut.ICGC[match(mat.ICGC.add$id,mat.mut.ICGC$id),]
-#
-loc.pred=grep('pred.',colnames(mat.ICGC.add)) 
-fisher.ICGC=list()
-fisher.ICGC.pval=fisher.ICGC.OR=matrix(,length(gene781),n.model)
-for(g in 1:length(gene781)){ 
-  print(g)
-  fisher.ICGC[[g]]=list()
-  if(sum(na.omit(mat.mut.ICGC[,g+1]))==0){ #this gth gene no mut
-    fisher.ICGC[[g]]=NA
-    fisher.ICGC.pval[g,]=fisher.ICGC.OR[g,]=NA
-  }else{
-    for(m in 1:n.model){ 
-      fisher.ICGC[[g]][[m]]=fisher.test(table(mat.mut.ICGC[,g+1],mat.ICGC.add[,loc.pred[m]]))
-      fisher.ICGC.pval[g,m]=fisher.ICGC[[g]][[m]]$p.value 
-      fisher.ICGC.OR[g,m]=fisher.ICGC[[g]][[m]]$estimate
-    }
-  }
-}
-#--p value
-fisher.ICGC.pval=data.frame(fisher.ICGC.pval)
-rownames(fisher.ICGC.pval)=gene781
-colnames(fisher.ICGC.pval)=name.model 
-
-#--keep significant cases
-fisher.ICGC.pval.sig=fisher.ICGC.pval
-for(m in 1:n.model){
-  fisher.ICGC.pval.sig[,m]=ifelse(fisher.ICGC.pval[,m]<=0.05,1,0)
-}
-fisher.ICGC.pval.sig.v1=fisher.ICGC.pval.sig[which(rowSums(fisher.ICGC.pval.sig)!=0),]
-fisher.ICGC.pval.sig.v1=data.frame(fisher.ICGC.pval.sig.v1)
-
-#--p.adjust
-fisher.ICGC.adj=fisher.ICGC.pval
-for(m in 1:n.model){ 
-  fisher.ICGC.adj[,m]=p.adjust(fisher.ICGC.pval[,m],'hochberg')
-}
-fisher.ICGC.adj.sig=ifelse(fisher.ICGC.adj<=0.05,1,0) #1=sig 
-fisher.ICGC.adj.sig.v1=fisher.ICGC.adj.sig[which(rowSums(fisher.ICGC.adj.sig)!=0),]
-fisher.ICGC.adj.sig.v1=data.frame(fisher.ICGC.adj.sig.v1) 
-
-#--OR
-fisher.ICGC.OR=data.frame(fisher.ICGC.OR)
-rownames(fisher.ICGC.OR)=gene781
-colnames(fisher.ICGC.OR)=name.model 
-
-#--OR with  significant cases
-fisher.ICGC.OR.v1=fisher.ICGC.OR[rownames(fisher.ICGC.OR)%in%rownames(fisher.ICGC.adj.sig.v1),] 
 
 
 ## mutational type vs HRD prob #### 
-#--5 genes with OR>1
-fisher.sig.gene=c("BRCA2","BRCA1","TP53","SETDB1","DPYD")
-#
 variant.all.sort=c("Splice_Site","Frame_Shift_Del","Frame_Shift_Ins","Nonsense_Mutation",
                    "Missense_Mutation","In_Frame_Del","In_Frame_Ins","Nonstop_Mutation",
                    "Translation_Start_Site","Readthrough_Mutation",
                    "RNA","DNV" )
-
-#-- METABRIC  
-loc.prob=grep('prob.',colnames(mat.METABRIC.add)) 
-mat.muttype.METABRIC=merge(mat.ismut.METABRIC,mat.METABRIC.add[,c(2,loc.prob)],by.x='id',
-                           by.y='id.PEREIRA')
-
-#--TCGA 
-mat.muttype.TCGA=mat.ismut.TCGA[match(mat.TCGA$id,mat.ismut.TCGA$id),] 
-loc.prob=grep('prob.',colnames(mat.TCGA.add)) 
-mat.muttype.TCGA=merge(mat.ismut.TCGA,mat.TCGA.add[,c(1,loc.prob)],by.x='id',
-                       by.y='id') 
-mat.muttype.TCGA=mat.muttype.TCGA[match(mat.TCGA.add$id,mat.muttype.TCGA$id),]
-
-#-- ICGC 
-loc.prob=grep('prob.',colnames(mat.ICGC.add)) 
-mat.muttype.ICGC=merge(mat.ismut.ICGC,mat.ICGC.add[,c(1,loc.prob)],by.x='id',
-                       by.y='id') 
-
-#-- 3cohort 
-mat.muttype.3cohort=rbind(mat.muttype.METABRIC,mat.muttype.TCGA,mat.muttype.ICGC)
-loc.gene.somatic=match(fisher.sig.gene,colnames(mat.muttype.3cohort)) 
-df.muttype.3cohort=list()
+mat.muttype.2cohort=rbind(mat.muttype.TCGA,mat.muttype.ICGC)
+loc.gene.somatic=match(fisher.2cohort.sig.gene.OR1,colnames(mat.muttype.2cohort)) 
+df.muttype.2cohort=list()
 for(i in 1:length(loc.gene.somatic)){
   print(i)
-  tmp=data.frame(gene=mat.muttype.3cohort[,loc.gene.somatic[i]], 
-                 mat.muttype.3cohort$prob.1,
-                 mat.muttype.3cohort$prob.2,
-                 mat.muttype.3cohort$prob.3,
-                 mat.muttype.3cohort$prob.4,
-                 mat.muttype.3cohort$prob.5)
+  tmp=data.frame(gene=mat.muttype.2cohort[,loc.gene.somatic[i]], 
+                 mat.muttype.2cohort$prob.1,
+                 mat.muttype.2cohort$prob.2,
+                 mat.muttype.2cohort$prob.3,
+                 mat.muttype.2cohort$prob.4,
+                 mat.muttype.2cohort$prob.5)
   colnames(tmp)=c('gene',name.model)
   tmp=na.omit(tmp)  
   tmp=melt(tmp) 
   tmp$gene=factor(tmp$gene,levels = unique(tmp$gene)[na.omit(match(variant.all.sort,unique(tmp$gene)))])
   colnames(tmp)=c('gene','model','prob') 
-  df.muttype.3cohort[[i]]=tmp
+  df.muttype.2cohort[[i]]=tmp
 } 
-names(df.muttype.3cohort)=fisher.sig.gene
-
+names(df.muttype.2cohort)=fisher.2cohort.sig.gene.OR1
 
 
 ## OR heatmap ####
 #--set unsig as -1 in white
 my_palette <- c('white',colorRampPalette(colors = c("darkblue", "lightblue"))(n =length(seq(0,0.9,by=0.1))),
                 "gray38", "gray38",
-                c(colorRampPalette(colors = c("tomato1","darkred"))(n =length(seq(1.1,20,by=1)))))
+                c(colorRampPalette(colors = c("tomato1","darkred"))(n =length(seq(1.1,25,by=1)))))
 
 #--
-tmp=which(fisher.TCGA.adj.sig.v1==0,arr.ind = TRUE) 
-tmp1=fisher.TCGA.OR.v1 
+tmp=which(fisher.2cohort.adj.sig.v2==0,arr.ind = TRUE) 
+tmp1=fisher.2cohort.OR.v2 
 if(dim(tmp)[1]!=0){
   for(i in 1:dim(tmp)[1]){
     tmp1[tmp[i,1],tmp[i,2]]=-1 #set unsig as -1 in white
   }
 }
-tmp1=data.frame(tmp1)
-tmp1$cohort='TCGA'
+tmp1=data.frame(tmp1) 
 tmp1$gene=rownames(tmp1) 
-df.heatmap.TCGA=tmp1 
-colnames(df.heatmap.TCGA)[1:5]=name.model
+df.heatmap.2cohort=tmp1 
+colnames(df.heatmap.2cohort)[1:5]=name.model
 
-#--
-tmp=which(fisher.METABRIC.adj.sig.v1==0,arr.ind = TRUE) 
-tmp2=fisher.METABRIC.OR.v1 
-for(i in 1:dim(tmp)[1]){
-  tmp2[tmp[i,1],tmp[i,2]]=-1 #set unsig as -1 in white
-}
-tmp2=data.frame(tmp2) 
-tmp2$cohort='METABRIC'
-tmp2$gene=rownames(tmp2)
-df.heatmap.METABRIC=tmp2 
-colnames(df.heatmap.METABRIC)[1:5]=name.model
-
-#--
-tmp=which(fisher.ICGC.adj.sig.v1==0,arr.ind = TRUE) 
-tmp3=fisher.ICGC.OR.v1 
-if(dim(tmp)[1]!=0){
-  for(i in 1:dim(tmp)[1]){
-    tmp3[tmp[i,1],tmp[i,2]]=-1 #set unsig as -1 in white
-  }
-} 
-tmp3=data.frame(tmp3)  
-tmp3$cohort='ICGC'
-tmp3$gene=rownames(tmp3)
-df.heatmap.ICGC=tmp3 
-colnames(df.heatmap.ICGC)[1:5]=name.model
-
-#--
-heatmap.METABRIC=pheatmap(df.heatmap.METABRIC[,1:5],cluster_row = FALSE, cluster_cols= FALSE, 
-                          color = my_palette, breaks =c(-1,seq(0,0.9,by=0.1),0.9999,1.0001,seq(1.1,20,by=1)), 
-                          scale = "none", legend=FALSE,
-                          main ='METABRIC') 
-heatmap.TCGA=pheatmap(df.heatmap.TCGA[,1:5],cluster_row = FALSE, cluster_cols= FALSE, 
-                      color = my_palette, breaks =c(-1,seq(0,0.9,by=0.1),0.9999,1.0001,seq(1.1,20,by=1)), 
-                      scale = "none", legend=FALSE,
-                      main ='TCGA')
-heatmap.ICGC=pheatmap(df.heatmap.ICGC[,1:5],cluster_row = FALSE, cluster_cols= FALSE, 
-                      color = my_palette, breaks =c(-1,seq(0,0.9,by=0.1),0.9999,1.0001,seq(1.1,20,by=1)), 
-                      scale = "none",  
-                      main ='ICGC')
-
-#-- combine all plots together 
-dev.off()
-heatmap.METABRIC
-heatmap.v1=grid.grab() #need clear plot!
-dev.off()
-heatmap.TCGA
-heatmap.v2=grid.grab()
-dev.off()
-heatmap.ICGC
-heatmap.v3=grid.grab()
-plot_grid(heatmap.v1,heatmap.v2,heatmap.v3, 
-          nrow=1)
-heatmap.v4=grid.grab()
+#--fig
+newnames <- lapply(rownames(df.heatmap.2cohort),function(x) bquote(italic(.(x))))
+heatmap.2cohort=pheatmap(df.heatmap.2cohort[,1:5],cluster_row = FALSE, cluster_cols= FALSE, 
+                         color = my_palette, breaks =c(-1,seq(0,0.9,by=0.1),0.9999,1.0001,seq(1.1,25,by=1)), 
+                         scale = "none", #legend=FALSE,
+                         main ='combined TCGA and ICGC cohorts',
+                         labels_row = as.expression(newnames))
 
 
 #--
-gg.muttype.3cohort=gg.muttype.3cohort.v2=gg.muttype.3cohort.n=list()
+gg.muttype.2cohort=gg.muttype.2cohort.v2=gg.muttype.2cohort.n=list()
 for(i in 1:length(loc.gene.somatic)){   
-  gg.muttype.3cohort[[i]]=ggplot(df.muttype.3cohort[[i]], aes(gene, prob)) + geom_boxplot() +ylim(c(0,1))+
-    facet_grid(~model)+labs(x=fisher.sig.gene[i])+
+  gg.muttype.2cohort[[i]]=ggplot(df.muttype.2cohort[[i]], aes(gene, prob)) + geom_boxplot() +ylim(c(0,1))+
+    facet_grid(~model)+labs(x=fisher.2cohort.sig.gene.OR1[i])+
     theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1))+
     coord_flip()+ylab('Predicted probabilities')+ xlab(" ")
   
   ## Create the table-base pallete
-  table_base <- ggplot(data.frame(table(df.muttype.3cohort[[i]]$gene)/n.model), aes(y=Var1)) +
+  table_base <- ggplot(data.frame(table(df.muttype.2cohort[[i]]$gene)/n.model), aes(y=Var1)) +
     ylab(NULL) + xlab("  ") + 
     theme(plot.title = element_text(hjust = 0.5, size=10), 
           axis.text.x = element_text(color="white", hjust =-3, size = 3), # This is used to help with alignment
@@ -710,31 +551,23 @@ for(i in 1:length(loc.gene.somatic)){
   tab1 <- table_base + 
     labs(title = "space") +
     geom_text(aes(y =Var1, x = 1, label = Freq), size =3) +  
-    ggtitle("N")
-  gg.muttype.3cohort.n[[i]]=tab1
+    ggtitle("n")
+  gg.muttype.2cohort.n[[i]]=tab1
   #
   lay <-  matrix(c(rep(1,12),2), nrow = 1)
-  gg.muttype.3cohort.v2[[i]]=ggarrange(grid.arrange(gg.muttype.3cohort[[i]], tab1,layout_matrix = lay))
+  gg.muttype.2cohort.v2[[i]]=ggarrange(grid.arrange(gg.muttype.2cohort[[i]], tab1,layout_matrix = lay))
 }
 
 #--
-tmp=ggarrange(gg.muttype.3cohort.v2[[1]]+xlab(''),#+ylab('Predicted probabilities'),
-              gg.muttype.3cohort.v2[[2]]+xlab(''),#+ylab('Predicted probabilities'),
-              gg.muttype.3cohort.v2[[3]]+xlab(''),#+ylab('Predicted probabilities'),
-              gg.muttype.3cohort.v2[[4]]+xlab(''),#+ylab('Predicted probabilities'),
-              gg.muttype.3cohort.v2[[5]]+xlab(''),#+ylab('Predicted probabilities'), 
-              gg.HR.CT_ER.METABRIC.RFS.prob,
-              labels =c(fisher.sig.gene,'  c)'),ncol=3,nrow =2,
+tmp=ggarrange(gg.muttype.2cohort.v2[[1]]+xlab(''),#+ylab('Predicted probabilities'),
+              gg.muttype.2cohort.v2[[2]]+xlab(''),#+ylab('Predicted probabilities'),
+              gg.muttype.2cohort.v2[[3]]+xlab(''),#+ylab('Predicted probabilities'),
+              gg.muttype.2cohort.v2[[4]]+xlab(''),#+ylab('Predicted probabilities'),
+              gg.muttype.2cohort.v2[[5]]+xlab(''),#+ylab('Predicted probabilities'), 
+              gg.muttype.2cohort.v2[[6]]+xlab(''),
+              gg.muttype.2cohort.v2[[7]]+xlab(''),
+              labels =fisher.2cohort.sig.gene.OR1,ncol=4,nrow =2,
               font.label = list(face = "bold.italic"))
-#fig9
-pdf('fig9_muttype_3cohort_combine_add_v1.pdf', width = 15, height =10) 
-plot_grid(NULL,
-          plot_grid(NULL,heatmap.v4,NULL,tmp,NULL, 
-                    nrow=5,labels = c('a)',NA,'b)',NA,NA), 
-                    rel_heights = c(0.1,1,0.1,2,0.1)),
-          NULL,ncol=3,rel_widths = c(0.1,4,0.1))
-dev.off()
-
 
 
 # SEC7. TransNEO ####
@@ -788,7 +621,7 @@ gg.box.TransNEO=ggplot(mat.prob.TransNEO, aes(x=HRD, y=prob, fill=HRD)) +
   facet_wrap(~variable,ncol=5)+ 
   geom_hline(data = mat.cut.f1, aes(yintercept = cut), linetype="dashed", color = "grey")  
 #
-pdf(file ="figs7_box_TransNEO_sd0.2.pdf",width=8, height=4)
+pdf(file ="fig_box_TransNEO.pdf",width=8, height=4)
 gg.box.TransNEO+theme(legend.position='none')
 dev.off()
 
@@ -810,7 +643,7 @@ gg.TransNEO.box.RCB=ggplot(mat.prob.TransNEO.RCB,aes(x=RCB.category,y=value,fill
   theme(panel.grid.major.x = element_blank())+
   theme(plot.margin = unit(c(1,0.5,0.5,1), "lines"))+guides(fill="none")
 #
-pdf('fig7a_TransNEO_box_RCB_sd0.2.pdf') 
+pdf('fig_TransNEO_box_RCB.pdf') 
 gg.TransNEO.box.RCB 
 dev.off()
 
@@ -880,7 +713,7 @@ gg.TransNEO.OR.pCR.5prob=ggplot(data=TransNEO.OR.pCR, aes(y=index, x=odds.ratio,
         axis.text=element_text(size=10),
         axis.title=element_text(size=10)) 
 #
-pdf('fig7_TransNEO_box_RCB_sd0.2_OR.pdf', width =13, height =4) #
+pdf('fig_TransNEO_box_RCB_OR.pdf', width =13, height =4) #
 ggarrange(gg.TransNEO.box.RCB,gg.TransNEO.OR.pCR.5prob, 
           nrow =1,ncol=2,widths =c(3.7,1),labels = c('a)','b)')) 
 dev.off()
@@ -891,9 +724,7 @@ dev.off()
 
 
 
-# SEC8. NEWTON,no mcn,model1,3,4;CT #### 
-#mat.NEWTON$CX3.brca #ALL0
-#matlog1.NEWTON$CX3.brca #all NA,set as 0
+# SEC8. NEWTON,no mcn,model1,3,4;CT ####  
 matlog1.NEWTON$CX3.brca=0
 mat.model.NEWTON=list(model1=data.frame(matlog1.NEWTON[,c(1,match(loc.feature.name$model1,colnames(matlog1.NEWTON)))]),
                       model2=NA,
@@ -905,15 +736,15 @@ pred.NEWTON=prob.NEWTON=list()
 for(m in 1:n.model){
   print(m)
   if(m==2|m==5){
- pred.NEWTON[[m]]=NA
- prob.NEWTON[[m]]=NA
+    pred.NEWTON[[m]]=NA
+    prob.NEWTON[[m]]=NA
   }else{  
     prob.NEWTON[[m]]=ssc:::predProb(model.self.rf[[m]]$model,data.matrix(mat.model.NEWTON[[m]][,-1]),
                                     model.self.rf[[m]]$pred,model.self.rf[[m]]$pred.pars)[,1]
     pred.NEWTON[[m]]=factor(ifelse(prob.NEWTON[[m]]>=mat.cut.f1$cut[m],1,0),levels=c(1,0)) 
-    }
+  }
 }  
- 
+
 
 #-- add pred/prob 
 mat.NEWTON.add=mat.NEWTON
@@ -984,7 +815,7 @@ for(m in 1:4){
     stat_cor(method = "pearson", label.x =0.1, label.y =0.4,size=5)
 } 
 #
-pdf(file ="fig8_CCLE_cor_PRISM_v1_brca.pdf", width = 12, height =10)
+pdf(file ="fig_CCLE_cor_PRISM_v1_brca.pdf", width = 12, height =10)
 ggarrange(gg.CCLE.cor.PRISM_v1_brca[[1]]+xlab(''),gg.CCLE.cor.PRISM_v1_brca[[2]]+xlab(''),
           gg.CCLE.cor.PRISM_v1_brca[[3]]+xlab(''),
           gg.CCLE.cor.PRISM_v1_brca[[4]],
@@ -1166,7 +997,7 @@ mat.clinical.test.pred$NEWTON.pred.4=round(c(chisq.test(table(mat.NEWTON.add[,c(
                                              chisq.test(table(mat.NEWTON.add[,c('pred.4',name.clinical[5])]))$p.value,NA,NA,NA),3)
 
 
-## mat.type.clinical.pred,56 27 ####
+## mat.type.clinical.pred ####
 name.clinical.n=c(2,2,2,2,3,2,5,10)
 name.clinical.label=c('<50','>=50',
                       'ER+','ER-',
@@ -2340,9 +2171,8 @@ gg.bar.clinical.NEWTON.pred.4=ggplot(tmp,
 
 
 
-### combine ####
-#figs11
-pdf(file = "figs8_clinical_predHRD.pdf", width =18, height =20)
+### combine #### 
+pdf(file = "fig_clinical_predHRD.pdf", width =18, height =20)
 ggarrange(NULL,ggarrange(gg.bar.clinical.METABRIC.pred.1,gg.bar.clinical.METABRIC.pred.2,gg.bar.clinical.METABRIC.pred.3, 
                          gg.bar.clinical.METABRIC.pred.4,gg.bar.clinical.METABRIC.pred.5,
                          labels=name.model,ncol=n.model,nrow=1,label.y = 1.05),
@@ -2369,12 +2199,18 @@ dev.off()
 
 
 # save #### 
-#--all predicted prob, CCLE only brca
+mat.SCANB.add$cohort='SCANB'
+mat.GEL.add$cohort='GEL'
+mat.GEL.add$id=paste0('id.',1:dim(mat.GEL.add)[1])
+#--all predicted prob, CCLE only brca; mat.CCLE_brca.add
 mat.prob.cohort=rbind(mat.TCGA.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
-                               mat.METABRIC.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
-                               mat.ICGC.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
-                               mat.TransNEO.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
-                               mat.CCLE.add[which(mat.CCLE.add$CANCER_TYPE=='Breast Cancer'),c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')])
+                      mat.ICGC.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
+                      mat.METABRIC.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
+                      mat.GEL.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
+                      mat.SCANB.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
+                      mat.TransNEO.add[,c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')],
+                      mat.CCLE.add[which(mat.CCLE.add$CANCER_TYPE=='Breast Cancer'),
+                                   c('cohort','id','is.hrd','prob.1','prob.2','prob.3','prob.4','prob.5')])
 #
 tmp=mat.NEWTON.add[,c('cohort','id','prob.1','prob.3','prob.4')]
 tmp$is.hrd=NA
@@ -2383,10 +2219,9 @@ tmp$prob.5=NA
 tmp=tmp[,c(1,2,6,3,7,4,5,8)]
 colnames(tmp)==colnames(mat.prob.cohort)
 mat.prob.cohort=rbind(mat.prob.cohort,tmp)  
-colnames(mat.prob.cohort)[3:8]=c('trueHRD',name.model)
-#unique(mat.prob.cohort$cohort)# "TCGA"     "METABRIC" "ICGC"     "TransNEO" "CCLE"     "NEWTON"  
-#
-write.csv(mat.prob.cohort, file = "mat.prob.cohort.csv", row.names = FALSE)    
+colnames(mat.prob.cohort)[3:8]=c('trueHRD',name.model)  
+write.csv(mat.prob.cohort, file = "output/mat.prob.cohort_rf.csv", row.names = FALSE)    
+
 
 
 #--
