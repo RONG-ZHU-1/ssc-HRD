@@ -9,7 +9,7 @@
 ################################################################
 
 rm(list=ls()) 
-setwd('...') #setwd('H:/Cambridge research/R/HRD_SSL_github')
+setwd('...')
 set.seed(1) #
 
 # library ####
@@ -53,7 +53,6 @@ load('data/mat.TransNEO.RData')  #164 89
 load('data/mat.NEWTON.RData') #525 64
 load('data/mat.CCLE.RData') #853 84
 #--mutation data
-load("data/mat.ismut.METABRIC.RData")#2357 782
 load("data/mat.ismut.TCGA.RData")#1026 782
 load("data/mat.ismut.ICGC.RData")#479 782
 
@@ -888,7 +887,7 @@ dev.off()
 
 
 
-# SCAN-B ####
+# SCAN-B, see validation_SCANB.R ####
 
 
 
