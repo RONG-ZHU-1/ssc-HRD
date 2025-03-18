@@ -12,7 +12,7 @@ _training_model_: Develop the feature selection, Leave-One-Out Cross-Validation 
 
 _LOOCV_: The Leave-One-Out Cross-Validation (LOOCV) process. 
 
-_ssc_model_: Construct the final five models using a random forest-based self-training method applied to three cohorts, incorporating specifically chosen features and thresholds.
+_ssc_model_: Construct the final five models using a random forest-based self-training method applied to two cohorts, incorporating specifically chosen features and thresholds.
 
 _validation_: Validation on other cohorts, such as TransNEO, NEWTON and CCLE datasets; and show performance. 
 
