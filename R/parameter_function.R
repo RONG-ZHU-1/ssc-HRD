@@ -24,15 +24,8 @@ name.clinical=c('Age','ER','Her2','PR','Grade','LN','Pam50','IntClust') #8
 
 
 #--optimal threshold obtained from LOOCV and F1 score
-mat.cut.f1=data.frame(variable=name.model,cut=c(0.428,0.326,0.348,0.310,0.336))
+mat.cut.f1=data.frame(variable=name.model,cut=c(0.382,0.450,0.344, 0.296, 0.374))
 mat.cut.f1$variable=factor(mat.cut.f1$variable,levels=name.model)
-#mat.cut.f1
-#   variable   cut
-# 1      CNA 0.428
-# 2     ASCN 0.326
-# 3      SNV 0.348
-# 4  SNV+CNA 0.310
-# 5 SNV+ASCN 0.336 
 
 
 #--bar plot for BRCA1/2 status
