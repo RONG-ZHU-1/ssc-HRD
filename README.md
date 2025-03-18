@@ -38,7 +38,11 @@ _gene781_: a curated list of 781 genes related to cancer and the homologous reco
 #--load R packages, parameters, features' names and our five models.
 set.seed(1) 
 library(ssc) 
-library(randomForest) 
+library(randomForest)
+library(reshape2)
+library(ggplot2) 
+library(ggpubr)
+
 source('R/parameter_function.R')  
 load('data/loc.feature.name.RData') 
 load('data/model.self.rf.RData') 
