@@ -1,8 +1,13 @@
+
 #--load R packages, parameters, features' name and our five models.
 set.seed(1) 
 library(ssc) 
 library(randomForest) 
-source('R/parameter_function.R')  
+library(reshape2)
+library(ggplot2) 
+library(ggpubr) 
+
+source('parameter_function.R')  
 load('data/loc.feature.name.RData') 
 load('data/model.self.rf.RData') 
 
@@ -10,7 +15,7 @@ load('data/model.self.rf.RData')
 #where the first column is the sample name, 
 #the second column is the HRD label,factor values with levels = c(1,0), 
 #and the 3:53 columns are the considered 51 features.
-load('data.SCANB.Rdata') #231 53
+load('example/data.SCANB.Rdata') #231 53
 
 #--data conversion by scale(log(x+1)) 
 matlog.SCANB=data.SCANB
@@ -31,3 +36,24 @@ for(m in 1:5){
                                  model.self.rf[[m]]$pred,model.self.rf[[m]]$pred.pars)[,1]
   pred.SCANB[[m]]=ifelse(prob.SCANB[[m]]>=mat.cut.f1$cut[m],1,0) 
 }
+
+
+#--boxplot
+mat.prob.SCANB=cbind(prob.SCANB[[1]],prob.SCANB[[2]],prob.SCANB[[3]],prob.SCANB[[4]],prob.SCANB[[5]]) 
+mat.prob.SCANB=data.frame(mat.prob.SCANB)
+colnames(mat.prob.SCANB)=name.model 
+mat.prob.SCANB$is.hrd=matlog.SCANB$is.hrd
+mat.prob.SCANB=mat.prob.SCANB[!is.na(mat.prob.SCANB$is.hrd),]
+mat.prob.SCANB$is.hrd=factor(mat.prob.SCANB$is.hrd,levels = c(1,0),labels= c('HRD+','HRD-')) 
+mat.prob.SCANB=melt(mat.prob.SCANB)
+dim(mat.prob.SCANB) 
+colnames(mat.prob.SCANB)[c(1,3)]=c('HRD','prob')  
+
+#--
+gg.box.SCANB=ggplot(mat.prob.SCANB, aes(x=HRD, y=prob, fill=HRD)) +
+  geom_boxplot()+stat_compare_means(method = "wilcox.test",label = "p.signif",color="blue")+
+  theme_minimal()+
+  xlab('')+ ylab('Predicted probabilities')+
+  facet_wrap(~variable,ncol=5)+ 
+  geom_hline(data = mat.cut.f1, aes(yintercept = cut), linetype="dashed", color = "grey") 
+gg.box.SCANB
